@@ -46,7 +46,7 @@ for file in files:
     file_out = file.replace(".txt", ".xml")
     # output = codecs.open(os.path.join(dir_out, file_out), "w", "utf-8")
     output = open(os.path.join(dir_out, file_out), "w")
-    output.write("<TEI>")
+    output.write("<TEI>\n")
     output.write("<text><body><div>")
     output.write(text)
     output.write("</div></body></text></TEI>")

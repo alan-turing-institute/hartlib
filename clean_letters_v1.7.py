@@ -1,8 +1,8 @@
 ## -*- coding: utf-8 -*-
 # Author: Barbara McGillivray, from original code by Miguel Won
-# Date: 18/02/2017
+# Date: 4/08/2017
 # Python version: 3
-# Script version: 1.5
+# Script version: 1.7
 # Changes from version 1.1: edited rules and added new rules following thorough testing of letters;
 # added new tests in unit_tests2.txt
 # Changes from version 1.2: generalized pattern matching for annotations_sq within square and angular brackets
@@ -10,6 +10,8 @@
 # three_italic_texts/two_talic_texts/one_italic_text
 # Changes from version 1.4: loop over italic patterns within angular brackets replaced the conditions on
 # three_italic_texts/two_talic_texts/one_italic_text
+# Changes from version 1.5: annotations like "word deleted" are ignored and not replaced by TEXT_MISSING
+# Changes from version 1.6: added further annotations from "Remarks first bundle 11062017.docx"
 
 # Import libraries:
 
@@ -22,6 +24,7 @@ import time
 from os import listdir
 from os.path import isfile, join
 from bs4 import BeautifulSoup
+#import beautifulsoup4
 import re
 from bs4 import UnicodeDammit
 
@@ -41,10 +44,11 @@ num_test = input("Which test are you interested in? Leave empty if you want all 
 # Directory and file names:
 
 #dir_in = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "selected"))  # relative path to data directory
-dir_in = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Hartlib Papers 2nd edition"))  # relative path to data directory
-dir_out = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "cleaned"))
-dir_tests = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "test_data"))
-tests_file = "unit_tests2.txt"
+dir = os.path.join("/Users", "bmcgillivray", "Documents", "OneDrive", "OneDrive - The Alan Turing Institute", "Research", "Hartlib")
+dir_in = os.path.join(dir, "Hartlib Papers 2nd edition")  # relative path to data directory
+dir_out = os.path.join(dir, "cleaned")
+dir_tests = os.path.join(dir, "test_data")
+tests_file = "unit_tests3.txt"
 test_output_file = "testing_results_" + str(time.strftime("%d-%m-%Y")) + ".tsv"
 test_output_file_summary = "testing_results_summary.csv"
 
@@ -110,7 +114,7 @@ removed_what_follows_ang = ["H alters from", "H alters", "altered from ", "alter
 annotations_sq = [
     # checked:
     "symbol",
-    "blot", "MS hole", "MS torn",
+    "blot", "MS hole", "MS torn", "MS faint", "? MS faint",
     "abbrev.", "? abbrev.?",
     "altered", "Altered", "? Altered", "? altered", "altered?",
     "MS edge",  "MS torn", "? MS torn", "? MS edge", "? hole in MS",
@@ -132,7 +136,10 @@ annotations_sq = [
     'diagram: two grids with numbering at the top and dots within squares',
     '? faintly written below diagram', "dotted",
     # added:
-    "? Blot", "? blotted"
+    "? Blot", "? blotted",
+"one word deleted", "Greek word deleted", "word/s deleted", "3 words deleted", "2 words deleted",
+                     'illeg. words deleted', "letters deleted","two words deleted", "deletion", "2 letters deleted",
+                    'number? deleted', "letter deleted", "letter deleted?", "word deleted"
 ]  # CHECK!!!!
 
 
@@ -285,6 +292,7 @@ def clean_text(text):
 
     # print("text0:"+text)
     text = text.replace('\xc2\xa0', ' ')
+
     #text = text.replace("\xa0", " ")
     # print("text1:"+text)
     # if '\xa0' in text:
@@ -378,7 +386,10 @@ def clean_text(text):
                     new_italic_text = italic_text.replace(annotation_to_replace, "")
                     new_roman_text = roman_text
                 else:
-                    if (italic_text in annotations_sq and italic_text != "?") or re.match(u'scribe [A-Z](\?)?:', italic_text) or \
+                    if italic_text.startswith(("altered by")):
+                        new_italic_text = ""
+                        new_roman_text = ""
+                    elif (italic_text in annotations_sq and italic_text != "?") or re.match(u'scribe [A-Z](\?)?:', italic_text) or \
                         re.match(u'hand [A-Z]\?:', italic_text) or re.match(u'p\. (\d)+?', italic_text) or \
                         re.match(u'(\d){1,2}[A-Z]{1,2}', italic_text):
                         #new_sq_bracket_pattern = new_sq_bracket_pattern.replace(italic_text, "")
@@ -421,6 +432,12 @@ def clean_text(text):
                             #new_sq_bracket_pattern = roman_text
                             new_italic_text = ""
                             new_roman_text = roman_text
+                    #elif re.match(u'left margin,(.*?)$', italic_text):
+                    #    lm = re.match(u'left margin,(.*?)$', italic_text)
+                    #    # new_sq_bracket_pattern = lm.group(1)
+                    #    new_italic_text = ""
+                    #    new_roman_text = lm.group(1)
+                    #    print("7'")
                     elif re.match(u'left margin(.*?)$', italic_text):
                         lm = re.match(u'left margin(.*?)$', italic_text)
                         #new_sq_bracket_pattern = lm.group(1)
@@ -526,7 +543,7 @@ def clean_text(text):
             if text_sqbr in ['seal', 'line deleted', 'letter deleted?', '?', 'bottom of page, upside down:',
                              'squiggle', 'letter finished in German', 'left margin:',
                              'H? crosses through preceding two lines', 'symbol?', "overwritten in another hand:",
-                             "Greek word deleted", "one word deleted"] or "catchword:" in text_sqbr:
+                             "Greek word deleted", "one word deleted"] or "catchword:" in text_sqbr or text_sqbr in annotations_sq:
                 new_sq_bracket_pattern = ""
                 print("a")
             elif re.match(u'p\. (\d)+?', text_sqbr):
@@ -563,6 +580,7 @@ def clean_text(text):
         if remove in text:
             print("remove in text!!!")
             text = text.replace(remove, include)  # .strip())
+            print("text:"+text)
         else:
             print("remove not in text!!!")
         print("prefinal:" + str(text))
@@ -619,21 +637,24 @@ def clean_text(text):
             #oneitalic_angbracket = re.match(u'&lt;(.*?)<i>(.*?)</i>(.*?)&gt;', new_ang_bracket_pattern)
             noitalic_angbracket = re.match(u'&lt;([^<]+?)&gt;', new_ang_bracket_pattern)
             italic_texts = re.compile(r'<i>(.*?)</i>').findall(new_ang_bracket_pattern)
-            roman_texts = re.compile(r'</i>(.*?)(?:<i>)?&gt;$').findall(new_ang_bracket_pattern)
+            #roman_texts = re.compile(r'</i>(.*?)(?:<i>)?&gt;$').findall(new_ang_bracket_pattern)
+            roman_texts = re.compile(r'</i>(.*?)<i>').findall(new_ang_bracket_pattern)
             print("---Angular bracket pattern before:" + str(ang_bracket_pattern))
 
             if len(italic_texts) > 0:
-                print("Italic text(s) in square brackets")
+                print("Italic text(s) in angular brackets")
                 replacements_italictexts = list()
                 replacements_romantexts = list()
                 for it in range(0,len(italic_texts)):
                     italic_text = italic_texts[it]
+                    print("Italic text:"+italic_text+"end")
                     new_italic_text = ""
                     new_roman_text = ""
                     try:
                         roman_text = roman_texts[it]
                     except:
                         roman_text = ""
+                    print("Roman text:" + roman_text + "end")
                     next_italic_text = ""
                     if it+1 < len(italic_texts):
                         next_italic_text = italic_texts[it+1]
@@ -660,7 +681,7 @@ def clean_text(text):
                             (italic_text != "illeg" or roman_text != ".") and \
                             italic_text not in removed_what_follows_ang and "catchword:" not in italic_text and\
                             italic_text != "left margin, another hand:" and (italic_text != "H" or not roman_text.startswith(":")):
-                        print("0")
+                        print("-2")
                         new_italic_text = italic_text.replace(annotation_to_replace, "")
                         new_roman_text = roman_text
                     else:
@@ -668,6 +689,7 @@ def clean_text(text):
                                     ((previous_italic_text == "left" and italic_text == "margin:") or (previous_italic_text == "margin:" and italic_text == "left"))):
                             new_italic_text = ""
                             new_roman_text = ""
+                            print("-1")
 
                         #elif italic_text in ["left margin:", "Hartlib:"]:
                         #    print("-2")
@@ -774,12 +796,20 @@ def clean_text(text):
                     print("include it:" + include_it)
                     print("replacements....")
                     print("text:" + new_ang_bracket_pattern)
+                    #if (re.match(u'^.+?left margin:</i>(.).*?$', new_ang_bracket_pattern)).group(1) == " ":
+                    #    print("ecco!!!space")
+                    #else:
+                    #    print("ecco!!!!"+"end")
                     if remove_it in new_ang_bracket_pattern:
                         print("remove it in text!!!")
                         new_ang_bracket_pattern = new_ang_bracket_pattern.replace(remove_it, include_it)  # .strip())
                     else:
                         print("remove not in text!!!")
-                    print("prefinal:" + str(new_ang_bracket_pattern))
+                    print("pre-prefinal:" + str(new_ang_bracket_pattern))
+                    #if (re.match(u'^.*?</i>(.).*?$', new_ang_bracket_pattern)).group(1) == " ":
+                    #    print("ecco2!!!space")
+                    #else:
+                    #    print("ecco2!!!!"+"end")
 
                 for i in range(0,len(replacements_romantexts)):
                     remove_rom = replacements_romantexts[i][0]
@@ -793,6 +823,10 @@ def clean_text(text):
                     else:
                         print("remove not in text!!!")
                     print("prefinal:" + str(new_ang_bracket_pattern))
+                    #if (re.match(u'^.*?</i>(.).*?$', new_ang_bracket_pattern)).group(1) == " ":
+                    #    print("ecco3!!!space")
+                    #else:
+                    #    print("ecco3!!!!"+"end")
 
                 new_ang_bracket_pattern = new_ang_bracket_pattern.replace("<i>", "").replace("</i>", "").replace("&lt;", "").replace("&gt;", "")
                 try:
@@ -832,7 +866,11 @@ def clean_text(text):
                 else:
                     new_ang_bracket_pattern = ""
 
-            print("------After sq:" + str(new_ang_bracket_pattern))
+            print("------After ang:" + str(new_ang_bracket_pattern))
+            #if (re.match(u'^(.).*?$', new_ang_bracket_pattern)).group(1) == " ":
+            #    print("ecco4!!!space")
+            #else:
+            #    print("ecco4!!!!" + "end")
 
             replacements.append((ang_bracket_pattern, new_ang_bracket_pattern))
 
@@ -842,23 +880,49 @@ def clean_text(text):
     for remove, include in replacements:
         print("remove:" + remove)
         print("include:" + include)
+        #if (re.match(u'^(.).*?$', include)).group(1) == " ":
+        #    print("ecco-include!!!space")
+        #else:
+        #    print("ecco-include!!!!" +(re.match(u'^(.).*?$', include)).group(1)+ "end")
         print("replacements....")
         print("text:" + text)
+        #if (re.match(u'^.*?</i>(.).*?$', text)).group(1) == " ":
+        #    print("ecco5!!!space")
+        #else:
+        #    print("ecco5!!!!" + (re.match(u'^(.).*?$', include)).group(1)+"end")
         if remove in text:
             print("remove in text!!!")
             text = text.replace(remove, include)  # .strip())
+            #if (re.match(u'^(.).*?$', text)).group(1) == " ":
+            #    print("ecco6!!!space")
+            #elif '\xa0' in text:
+            #    print("ecco6!!!non-breaking space")
+            #else:
+            #    print("ecco6!!!!" + (re.match(u'^(.).*?$', include)).group(1)+"end")
         elif remove in text.replace("  ", " ").rstrip().lstrip().replace("  ", " "):
             print("remove in text!!!")
             text = text.replace("  ", " ").rstrip().lstrip().replace("  ", " ")
             text = text.replace(remove, include)  # .strip())
+            #if (re.match(u'^(.).*?$', text)).group(1) == " ":
+            #    print("ecco7!!!space")
+            #else:
+            #    print("ecco7!!!!" + (re.match(u'^(.).*?$', include)).group(1)+"end")
         else:
             print("remove not in text!!!")
-        print("prefinal:" + str(text))
+        print("before final:" + str(text))
+        #if (re.match(u'^(.).*?$', text)).group(1) == " ":
+        #    print("ecco8!!!space")
+        #elif '\xa0' in text:
+        #    print("ecco8!!!non-breaking space")
+        #else:
+        #    print("ecco8!!!!" + (re.match(u'^(.).*?$', include)).group(1)+"end")
 
     # Remove italic formatting left (outside brackets):
     if "<i>" in text:
         text = text.replace("<i>", "").replace("</i>", "")
 
+    if '\xa0' in text:
+        text = text.replace(u'\xa0', ' ')
     text = text.replace("&lt;", "").replace("&gt;", "")
     # Remove HTML tag:
 
@@ -870,7 +934,6 @@ def clean_text(text):
         text = text.replace("<html>", "").replace("</html>", "")
 
     # in cases like audio[=audeo] we only want audeo:
-    print("ecco")
     eqs = re.compile(r"^(.*?)\b([^ ]+?)\!\!\!([^ ]+?)\b(.*?)$").findall(text)
     for eq in eqs:
         print("1!!!!")
@@ -879,13 +942,18 @@ def clean_text(text):
     for eq in eqs:
         print("2!!!!")
         text = eq[0] + " " + eq[2] + " " + eq[3]
+
+    #text = text.replace("H:", "") # this needs to be fixed properly!!!
+    text = text.replace("<i>H</i>:", "") # this needs to be fixed properly!!!
     text = text.replace("\xc2", "")
     text = text.replace("amp;", "")
     text = text.replace("#", "")
     text = text.replace("*", "")
+    #text = text.replace("Â", "")
     text = text.replace("  ", " ").rstrip().lstrip()
     text = text.replace("  ", " ").replace("()", "").replace(" , ", ", ").replace(" ;", ";").replace("  ", " ")
     text = re.sub(r'  ', ' ', text)
+    text = text.replace('\xa0', "")
     text = text.replace("  ", " ").rstrip().lstrip()
 
     print("final:" + str(text))
@@ -948,7 +1016,7 @@ with open(os.path.join(dir_tests, test_output_file_summary), 'w') as summary_tes
 
 files = [f for f in listdir(dir_in) if isfile(join(dir_in, f)) and f.startswith("1")]
 if istest == "yes":
-    #files = ["ADD4279_41.html"]
+    files = ["1C_34_13.html"]
     #files = ["test.html"]
     files = []
 

@@ -1,8 +1,9 @@
 # Author: Barbara McGillivray, from original code by Miguel Won
-# Date: 10/04/2017
+# Date: 13/06/2017
 # Python version: 3
 # Script version: 1.0
-# Script for extracting keywords from cleaned letters from Hartlib archive
+# Script for extracting topics from cleaned letters from Hartlib archive
+# From https://radimrehurek.com/gensim/tut2.html
 
 # -----------------------------------------------------------------
 # Initialization
@@ -40,28 +41,6 @@ file_out = "letters_keywords" + str(time.strftime("%d-%m-%Y")) + ".csv"
 if not os.path.exists(dir_out):
     os.makedirs(dir_out)
 
-# Define functions
-
-# This function computes the term frequency, which is the number of times a word appears in a document blob,
-# normalized by dividing by the total number of words in blob.
-# We use TextBlob for breaking up the text into words and getting the word counts:
-def tf(word, blob):
-    return blob.words.count(word) / len(blob.words)
-
-# This function returns the number of documents containing a word:
-def n_containing(word, bloblist):
-    return sum(1 for blob in bloblist if word in blob.words)
-
-# This function computes the inverse document frequency, which measures how common a word is among
-# all documents in bloblist
-def idf(word, bloblist):
-    return math.log(len(bloblist) / (1 + n_containing(word, bloblist)))
-
-# This function computes the TF-IDF score:
-def tfidf(word, blob, bloblist):
-    return tf(word, blob) * idf(word, bloblist)
-
-# This function converts the XML text from MorphAdorner's lemmatization output to running text contaiing the lemmas one after the other:
 
 def xml2text(path_in):
 
