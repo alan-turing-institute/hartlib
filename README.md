@@ -1,2 +1,14 @@
-# digital-humanities-nlp
-Scripts on various NLP tasks for Digital Humanities in Barbara McGillivray's research. 
+# hartlib
+
+Code for processing the Hartlib Papers, extracting topics, and detecting semantic change. Collaboration between Barbara McGillivray, Simon Hengchen, and Robin Buning.
+
+Steps:
+
+a) Linguistic pre-processing of letters:
+1)	clean_letters_v1.7.py
+2)	prepare_lemmatization_v1.0.py
+3)	cd [folder where MorphAdorner is installed]
+4)	For every file:
+./adorneme [path to output folder with double quotes] [path to input file with double quotes]
+
+b) Language identification:
