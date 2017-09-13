@@ -44,7 +44,7 @@ num_test = input("Which test are you interested in? Leave empty if you want all 
 # Directory and file names:
 
 #dir_in = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "selected"))  # relative path to data directory
-dir = os.path.join("/Users", "bmcgillivray", "Documents", "OneDrive", "OneDrive - The Alan Turing Institute", "Research", "Hartlib")
+dir = os.path.join("/Users", "bmcgillivray", "Documents", "OneDrive", "The Alan Turing Institute", "Hartlib Papers - Documents")
 dir_in = os.path.join(dir, "Hartlib Papers 2nd edition")  # relative path to data directory
 dir_out = os.path.join(dir, "cleaned")
 dir_tests = os.path.join(dir, "test_data")
@@ -451,9 +451,12 @@ def clean_text(text):
                         print("9")
                     elif "Hebrew:" in italic_text:  # add other languages!
                         hebrew = re.match(u'Hebrew: (.*)', italic_text)
-                        hebrew1 = hebrew.group(1)
+                        if hebrew:
+                            hebrew1 = hebrew.group(1)
                         #new_sq_bracket_pattern = hebrew1
-                        new_italic_text = hebrew1
+                            new_italic_text = hebrew1
+                        else:
+                            new_italic_text = italic_text
                         new_roman_text = ""
                         print("10")
                     elif italic_text in ["left margin:", "left margin: *", "H:", "Hartlib:", "H?:"]:
@@ -464,9 +467,12 @@ def clean_text(text):
                     elif "symbol: " in italic_text:
                         print("11")
                         symb = re.match(u'^symbol: (.+?)$', italic_text)
-                        symb1 = symb.group(1)
+                        if symb:
+                            symb1 = symb.group(1)
                         #new_sq_bracket_pattern = new_sq_bracket_pattern.replace(italic_text, symb1)
-                        new_italic_text = symb1
+                            new_italic_text = symb1
+                        else:
+                            new_italic_text = italic_text
                         new_roman_text = ""
                     elif "?" in italic_text:
                         #new_sq_bracket_pattern = new_sq_bracket_pattern.replace("?", "")
@@ -1014,7 +1020,7 @@ with open(os.path.join(dir_tests, test_output_file_summary), 'w') as summary_tes
 # Process letters
 # --------------------------
 
-files = [f for f in listdir(dir_in) if isfile(join(dir_in, f)) and f.startswith("1")]
+files = [f for f in listdir(dir_in) if isfile(join(dir_in, f)) and f.endswith(".html")]# and f.startswith("1")]
 if istest == "yes":
     files = ["1C_34_13.html"]
     #files = ["test.html"]
