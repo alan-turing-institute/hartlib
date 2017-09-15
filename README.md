@@ -12,3 +12,5 @@ a) Linguistic pre-processing of letters:
 ./adorneme [path to output folder with double quotes] [path to input file with double quotes]
 
 b) Language identification:
+1)	langid-HARTLIB.py identifies language on a line-by-line basis
+2)	Rule of thumb: files smaller than 300 bytes are not proper letters but signatures and parts of other-language letters &rarr removed
