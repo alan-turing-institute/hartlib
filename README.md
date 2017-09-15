@@ -1,4 +1,4 @@
-# hartlib
+# Hartlib project
 
 Code for processing the Hartlib Papers, extracting topics, and detecting semantic change. Collaboration between Barbara McGillivray, Simon Hengchen, and Robin Buning.
 
