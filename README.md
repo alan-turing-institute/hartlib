@@ -6,11 +6,13 @@ Steps:
 
 a) Linguistic pre-processing of letters:
 1)	clean_letters_v1.7.py
+2)	langid-HARTLIB.py
 2)	prepare_lemmatization_v1.0.py
 3)	cd [folder where MorphAdorner is installed]
 4)	For every file:
 ./adorneme [path to output folder with double quotes] [path to input file with double quotes]
+5)	select_POS.py
 
-b) Language identification:
-1)	langid-HARTLIB.py identifies language on a line-by-line basis
-2)	Rule of thumb: files smaller than 300 bytes are not proper letters but signatures and parts of other-language letters &rarr; removed
+b) Topic extraction:
+1)	TopicModelingTool-FR.jar (or MALLET, or...)
+
