@@ -644,7 +644,10 @@ def clean_text(text):
             noitalic_angbracket = re.match(u'&lt;([^<]+?)&gt;', new_ang_bracket_pattern)
             italic_texts = re.compile(r'<i>(.*?)</i>').findall(new_ang_bracket_pattern)
             #roman_texts = re.compile(r'</i>(.*?)(?:<i>)?&gt;$').findall(new_ang_bracket_pattern)
-            roman_texts = re.compile(r'</i>(.*?)<i>').findall(new_ang_bracket_pattern)
+            if not re.match(r'</i>(.*?)<i>',new_ang_bracket_pattern):
+                roman_texts = re.compile(r'</i>(.*?)$').findall(new_ang_bracket_pattern)
+            else:
+                roman_texts = re.compile(r'</i>(.*?)<i>').findall(new_ang_bracket_pattern)
             print("---Angular bracket pattern before:" + str(ang_bracket_pattern))
 
             if len(italic_texts) > 0:
@@ -669,7 +672,7 @@ def clean_text(text):
                         previous_italic_text = italic_texts[it-1]
                     match_annotation = 0
                     annotation_to_replace = ""
-
+                    
                     for ann in annotations_ang:
                         if ann == italic_text and "altered" not in ann and ann not in ["?", "symbol"]:
                             match_annotation = match_annotation + 1
@@ -695,7 +698,8 @@ def clean_text(text):
                                     ((previous_italic_text == "left" and italic_text == "margin:") or (previous_italic_text == "margin:" and italic_text == "left"))):
                             new_italic_text = ""
                             new_roman_text = ""
-                            print("-1")
+                            print("-1a")
+                            print(str(replacements_romantexts))
 
                         #elif italic_text in ["left margin:", "Hartlib:"]:
                         #    print("-2")
@@ -708,7 +712,8 @@ def clean_text(text):
                         elif italic_text == "H" and roman_text.startswith(":"):
                             print("0")
                             new_italic_text = ""
-                            new_roman_text = roman_text[1:]
+                            #new_roman_text = roman_text[1:]
+                            new_roman_text = roman_text.lstrip()
                             #roman_text = roman_text[1:]
                         elif italic_text in annotations_ang or re.match(u'scribe [A-Z](\?)?:', italic_text) or re.match(u'hand [A-Z]\?:', italic_text) or re.match(u'p\. (\d)+?', italic_text) or re.match(u'(\d){1,2}[A-Z]{1,2}', italic_text):
                             new_italic_text = ""
@@ -758,7 +763,7 @@ def clean_text(text):
                             new_italic_text = hebrew1
                             new_roman_text = ""
                             print("10")
-                        elif italic_text in ["H:", "Hartlib:", "H?:"] or italic_text == "Hartlib" and roman_text == ":":
+                        elif italic_text in ["H:", "Hartlib:", "H?:"] or (italic_text == "Hartlib" and roman_text == ":"):
                             print("10a")
                             new_italic_text = ""
                             new_roman_text = roman_text
@@ -771,6 +776,10 @@ def clean_text(text):
                         elif "?" in italic_text:
                             new_italic_text = italic_text.replace("?", "")
                             new_roman_text = ""
+                        elif (italic_text == "H" and roman_text.startswith(":")):
+                            print("10b")
+                            new_italic_text = ""
+                            new_roman_text = roman_text.lstrip()
                         else:
                             print("12")
                             mstorn = re.match(u'^(.+?)(\?)? MS (torn|edge)', italic_text)  # as in the test "W: [Speede MS torn]"
@@ -791,7 +800,10 @@ def clean_text(text):
                                 print("c")
                                 new_italic_text = italic_text.replace("&lt;", "").replace("&gt;", "")
                                 new_roman_text = roman_text
-
+                    
+                    if roman_text == " ":
+                        new_roman_text = " "
+                        
                     replacements_italictexts.append((italic_text, new_italic_text))
                     replacements_romantexts.append((roman_text, new_roman_text))
 
@@ -820,11 +832,11 @@ def clean_text(text):
                 for i in range(0,len(replacements_romantexts)):
                     remove_rom = replacements_romantexts[i][0]
                     include_rom = replacements_romantexts[i][1]
-                    print("remove rom:" + remove_rom)
-                    print("include rom:" + include_rom)
+                    print(":" + remove_rom + "end")
+                    print("include rom:" + include_rom + "end")
                     print("replacements....")
                     if remove_rom in new_ang_bracket_pattern:
-                        print("remove rom in text!!!")
+                        print(" in text!!!")
                         new_ang_bracket_pattern = new_ang_bracket_pattern.replace(remove_rom, include_rom)  # .strip())
                     else:
                         print("remove not in text!!!")
