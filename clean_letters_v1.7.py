@@ -967,6 +967,8 @@ def clean_text(text):
     text = text.replace("amp;", "")
     text = text.replace("#", "")
     text = text.replace("*", "")
+    text = text.replace("&", "and")  # added 19/09/2017: morphardoner fails if ampersand characters remain
+    text = text.replace(" & ", " and ") # added 19/09/2017: morphardoner fails if ampersand characters remain
     #text = text.replace("Â", "")
     text = text.replace("  ", " ").rstrip().lstrip()
     text = text.replace("  ", " ").replace("()", "").replace(" , ", ", ").replace(" ;", ";").replace("  ", " ")
