@@ -16,3 +16,6 @@ a) Linguistic pre-processing of letters:
 b) Topic extraction:
 1)	TopicModelingTool-FR.jar (or MALLET, or...)
 
+c) Topic selection/analysis:
+1) Hartlib Papers workflow.ipynb
+2) LDA comparison.ipynb
