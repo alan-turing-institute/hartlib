@@ -2,6 +2,8 @@
 
 Code for processing the Hartlib Papers, extracting topics, and detecting semantic change. Collaboration between Barbara McGillivray, Simon Hengchen, and Robin Buning.
 
+The script for cleaning the texts was adapted from an original script by Miguel Won.
+
 Steps:
 
 a) Linguistic pre-processing of letters:
