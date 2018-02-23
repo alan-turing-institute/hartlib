@@ -14,7 +14,7 @@ Steps:
     - cd [folder where MorphAdorner is installed]
     - For every file:
       ./adorneme [path to output folder with double quotes] [path to input file with double quotes]
-    - select_POS.py  
+    - Prepare input for topic extraction by extracting lemmas of specific pos: select_POS.py  
   b) Latin: 
 4) Topic extraction: TopicModelingTool-FR.jar
 5) Topic selection/analysis: Hartlib Papers workflow.ipynb
