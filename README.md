@@ -16,6 +16,7 @@ Steps:
       ./adorneme [path to output folder with double quotes] [path to input file with double quotes]
     - Prepare input for topic extraction by extracting lemmas of specific pos: select_POS.py  
   b) Latin: 
+    - lemmatize_latin.py
 4) Topic extraction: TopicModelingTool-FR.jar
 5) Topic selection/analysis: Hartlib Papers workflow.ipynb
 6) Semantic change: LDA comparison.ipynb
