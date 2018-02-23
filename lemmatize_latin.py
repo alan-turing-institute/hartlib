@@ -55,7 +55,7 @@ for file in files:
     # Separate punctuation mark:
 
     for i in range(0, len(sentences)):
-        sentences[i] = re.sub(r'^(.*?)(.)$', r'\1 \2', sentences[i])
+        sentences[i] = re.sub(r'^(.*?)(.)$', r'\1 \2', sentences[i]).lower()
 
         lemmatized_sentence = " ".join(lemmatizer.lemmatize(sentences[i]))
 
