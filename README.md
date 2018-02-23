@@ -10,9 +10,11 @@ a) Linguistic pre-processing of letters:
 1)	clean_letters_v1.7.py
 2)	langid-HARTLIB.py
 2)	prepare_lemmatization_v1.0.py
-3)	cd [folder where MorphAdorner is installed]
-4)	For every file:
-./adorneme [path to output folder with double quotes] [path to input file with double quotes]
+3)	Lemmatization:
+  a) English: cd [folder where MorphAdorner is installed]
+    	For every file:
+      ./adorneme [path to output folder with double quotes] [path to input file with double quotes]
+  b) Latin: 
 5)	select_POS.py
 
 b) Topic extraction:
