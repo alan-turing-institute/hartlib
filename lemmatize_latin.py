@@ -55,9 +55,44 @@ for file in files:
     # Separate punctuation mark:
 
     for i in range(0, len(sentences)):
-        sentences[i] = re.sub(r'^(.*?)(.)$', r'\1 \2', sentences[i]).lower()
+        sentences[i] = re.sub(r'^(.*?)(.)$', r'\1 \2 ', sentences[i]).lower()
+        print("sentence:",sentences[i])
+
+        #clean characters:
+
+        #v-->u:
+        sentences[i] = re.sub(r'v', r'u', sentences[i])
+
+        #j-->i:
+        sentences[i] = re.sub(r'j', r'i', sentences[i])
+
+        #circumflex:
+        sentences[i] = re.sub(r'ô', r'o', sentences[i])
+        sentences[i] = re.sub(r'î', r'i', sentences[i])
+        sentences[i] = re.sub(r'â', r'a', sentences[i])
+        sentences[i] = re.sub(r'û', r'u', sentences[i])
+        sentences[i] = re.sub(r'ê', r'e', sentences[i])
+        sentences[i] = re.sub(r'ŷ', r'y', sentences[i])
+
+        # grave accent:
+
+        sentences[i] = re.sub(r'à', r'a', sentences[i])
+        sentences[i] = re.sub(r'è', r'e', sentences[i])
+        sentences[i] = re.sub(r'æ̀', r'ae', sentences[i])
+        sentences[i] = re.sub(r'ì', r'i', sentences[i])
+        sentences[i] = re.sub(r'ò', r'o', sentences[i])
+        sentences[i] = re.sub(r'ù', r'u', sentences[i])
+        sentences[i] = re.sub(r'ỳ', r'y', sentences[i])
+
+        # ligatures:
+        sentences[i] = re.sub(r'æ', r'ae', sentences[i])
+        sentences[i] = re.sub(r'œ', r'oe', sentences[i])
 
         lemmatized_sentence = " ".join(lemmatizer.lemmatize(sentences[i]))
+        lemmatized_sentence = re.sub(r'\.', r'. ', lemmatized_sentence)
+        lemmatized_sentence = re.sub(r'\?', r'? ', lemmatized_sentence)
+        lemmatized_sentence = re.sub(r'\!', r'! ', lemmatized_sentence)
+        #print("lemmatized sentence:", lemmatized_sentence)
 
         # Write to output files:
         output.write(lemmatized_sentence)
