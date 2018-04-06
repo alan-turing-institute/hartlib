@@ -27,6 +27,7 @@ import io
 
 dir_in = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hartlib", "OneDrive", "lemmatization", "cleaned_EN_output"))
 dir_out = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "hartlib", "OneDrive", "lemmatization", "input_TM"))  # relative path to data directory
+# For Barbara this is /Users/bmcgillivray/Documents/OneDrive/The Alan Turing Institute/Hartlib Papers - Documents/topic_extraction/input/en
 
 # create output directory if it doesn't exist:
 if not os.path.exists(dir_out):
