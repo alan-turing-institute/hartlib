@@ -1,0 +1,372 @@
+---
+title: "Multilingual analysis of topics in the Hartlib Papers"
+output: html_document
+author: Barbara McGillivray
+---
+
+
+
+```{r global_options, echo=FALSE}
+#Global options:
+knitr::opts_chunk$set(fig.width=7)
+```
+
+# Initialization
+
+## Load libraries and data, and set initial parameters
+
+Load libraries:
+
+```{r message=FALSE}
+op <- options(warn = (-1)) # suppress warnings 
+#library(readtext)
+#library(tidyverse)
+#library(stringr)
+options(op) # reset the default value
+```
+
+Directory and file names:
+
+```{r}
+path =  file.path("/Users", "bmcgillivray", "Documents", "OneDrive", "The Alan Turing Institute", "The Alan Turing Institute", "Hartlib Papers - Documents", "Topics", fsep = "/")
+path_in = paste(path, "analysis", "output", sep = "/")
+input_file_name = 'Topics_languages_dataframe.csv'
+```
+
+Read input:
+
+```{r}
+df = read.csv(paste(path_in, input_file_name, sep = "/"), sep = "\t", header = T)
+head(df)
+dim(df)
+```
+
+## Initial exploration
+
+```{r}
+summary(df)
+summary(df$language)
+summary(df$topic)
+summary(df$number_topics)
+hist(df$number_topics)
+```
+...
+## Relationship between frequency and evaluation metrics
+
+```{r}
+par(mfrow = c(1,2))
+boxplot(precision ~ frequent, data = data, main = "Precision by frequency")
+boxplot(recall ~ frequent, data = data, main = "Recall by frequency")
+par(mfrow = c(1,1))
+```
+
+Frequency does not seem to make a difference to evaluation metrics.
+
+Is there a difference between frequent and non-frequent lemmas in terms of their precision?
+
+```{r}
+tapply(data$precision, data$frequent, mean)
+tapply(data$precision, data$frequent, sd)
+boxplot(data$precision ~ data$frequent)
+t.test(precision ~ frequent, data = data, paired = F)
+```
+
+No.
+
+Is there a difference between frequent and non-frequent lemmas in terms of their recall?
+
+```{r}
+tapply(data$recall, data$frequent, mean)
+tapply(data$recall, data$frequent, sd)
+boxplot(data$recall ~ data$frequent)
+t.test(recall ~ frequent, data = data, paired = F)
+```
+
+No.
+
+The high p-value indicates that we cannot reject the null hypothesis that the two groups have the same mean.
+
+
+## Relationship between polysemy and evaluation metrics
+
+```{r}
+par(mfrow = c(1,2))
+boxplot(precision ~ polysemous, data = data, main = "Precision by polysemy")
+boxplot(recall ~ polysemous, data = data, main = "Recall by polysemy")
+par(mfrow = c(1,1))
+```
+
+Polysemy, rather than frequency, seems to make a difference to evaluation metrics, with polysemous lemmas performing worse than monosemous ones.
+
+Is there a difference between polysemous and monosemous lemmas in terms of their precision?
+
+```{r}
+tapply(data$precision, data$polysemous, mean)
+tapply(data$precision, data$polysemous, sd)
+boxplot(data$precision ~ data$polysemous)
+t.test(precision ~ polysemous, data = data, paired = F)
+```
+
+No. The high p-value indicates that we cannot reject the null hypothesis that the two groups have the same mean.
+
+
+Is there a difference between polysemous and monosemous lemmas in terms of their recall?
+
+```{r}
+tapply(data$recall, data$polysemous, mean)
+tapply(data$recall, data$polysemous, sd)
+boxplot(data$recall ~ data$polysemous)
+t.test(recall ~ polysemous, data = data, paired = F)
+```
+
+No. The high p-value indicates that we cannot reject the null hypothesis that the two groups have the same mean.
+
+## Regression models
+
+```{r}
+ev.pr.lm <- lm(precision ~ frequent + polysemous, data = data)
+summary(ev.pr.lm)
+```
+
+Model diagnostics:
+
+```{r}
+par(mfrow = c(2,2))
+plot(ev.pr.lm)
+par(mfrow = c(1,1))
+```
+
+
+Not a good model.
+
+```{r}
+ev.re.lm <- lm(recall ~ frequent + polysemous, data = data)
+summary(ev.re.lm)
+```
+
+Model diagnostics:
+
+```{r}
+par(mfrow = c(2,2))
+plot(ev.re.lm)
+par(mfrow = c(1,1))
+```
+
+Not a good model.
+
+# All parameter combinations
+
+Loop over all parameter combinations:
+
+```{r Initial parameters1}
+windows = c(1,5,10)
+#windows = c(5,10)
+freq_thresholds = c(1,20,50,100)
+#freq_thresholds = c(20,50,100)
+lexicons = c("SCHMIDT", "AGWN", "POLLUX")
+#lexicons = c("POLLUX")
+```
+
+## Create datasets
+
+```{r}
+evaluations = data.frame(lemma=(character()),
+                 precision=double(), 
+                 recall=double(), 
+                 window=integer(),
+                 freq_threshold=integer(),
+                 lexicon=factor(),
+                 stringsAsFactors=FALSE) 
+for (window in windows) {
+  print(paste("Window:", window, sep = ""))
+  for (f in freq_thresholds) {
+    print(paste("Freq threshold:", f, sep = ""))
+    for (lexicon in lexicons){
+      print(paste("Lexicon:", lexicon, sep = ""))
+      if ( !(window == 1 && f ==	1 && lexicon ==	"AGWN") && !(window == 5 && f ==	1	&& lexicon ==	"AGWN") && !(window == 10	&& f ==1 && lexicon ==	"AGWN")){
+        print(paste("Continue with", "window:", window, "Freq threshold:", f, "Lexicon:", lexicon, sep = " "))
+      evaluation = process_evaluation_text_fun(path, window, f, lexicon)
+      evaluation = evaluation[,c("lemma", "precision", "recall")]
+      evaluation$window = window
+      evaluation$freq_threshold = f
+      evaluation$lexicon = lexicon
+      evaluations = rbind(evaluations, evaluation)}
+    }
+  }
+}
+evaluations$lexicon = as.factor(evaluations$lexicon)
+```
+
+Prepare final dataset:
+
+```{r}
+data = merge(word_list, evaluations, by = c("lemma"))
+data$lexicon = as.factor(data$lexicon)
+dim(data)
+summary(data)
+```
+
+
+##Distributions
+
+```{r}
+hist(data$precision)
+hist(data$recall)
+shapiro.test(data$precision)
+shapiro.test(data$recall)
+```
+
+The distributions are not normal. However, The t-test assumes that the means of the different samples are normally distributed; it does not assume that the population is normally distributed. By the central limit theorem, means of samples from a population with finite variance approach a normal distribution regardless of the distribution of the population. Rules of thumb say that the sample means are basically normally distributed as long as the sample size is at least 20 or 30. For a t-test to be valid on a sample of smaller size, the population distribution would have to be approximately normal. The t-test is invalid for small samples from non-normal distributions, but it is valid for large samples from non-normal distributions. In our case we have `r nrow(data)` data points.
+
+
+# Relationship between frequency and evaluation metrics
+
+```{r}
+par(mfrow = c(1,2))
+boxplot(precision ~ frequent, data = data, main = "Precision by frequency")
+boxplot(recall ~ frequent, data = data, main = "Recall by frequency")
+par(mfrow = c(1,1))
+```
+
+Frequency does not seem to make a difference to evaluation metrics.
+
+Is there a statistically significant difference between frequent and non-frequent lemmas in terms of their precision?
+
+```{r}
+tapply(data$precision, data$frequent, mean)
+tapply(data$precision, data$frequent, sd)
+boxplot(data$precision ~ data$frequent)
+t.test(precision ~ frequent, data = data, paired = F)
+```
+
+No.
+
+Is there a statistically significant difference between frequent and non-frequent lemmas in terms of their recall?
+
+```{r}
+tapply(data$recall, data$frequent, mean)
+tapply(data$recall, data$frequent, sd)
+boxplot(data$recall ~ data$frequent)
+t.test(recall ~ frequent, data = data, paired = F)
+```
+
+No.
+
+The high p-value indicates that we cannot reject the null hypothesis that the two groups have the same mean.
+
+
+# Relationship between polysemy and evaluation metrics
+
+```{r}
+par(mfrow = c(1,2))
+boxplot(precision ~ polysemous, data = data, main = "Precision by polysemy")
+boxplot(recall ~ polysemous, data = data, main = "Recall by polysemy")
+par(mfrow = c(1,1))
+```
+
+Polysemy, rather than frequency, seems to make a difference to evaluation metrics, with polysemous lemmas performing worse than monosemous ones.
+
+Is there a statistically significant difference between polysemous and monosemous lemmas in terms of their precision?
+
+```{r}
+tapply(data$precision, data$polysemous, mean)
+tapply(data$precision, data$polysemous, sd)
+boxplot(data$precision ~ data$polysemous)
+t.test(precision ~ polysemous, data = data, paired = F)
+```
+
+Yes. The low p-value indicates that we can reject the null hypothesis that the two groups have the same mean.
+
+
+Is there a statistically significant difference between polysemous and monosemous lemmas in terms of their recall?
+
+```{r}
+tapply(data$recall, data$polysemous, mean)
+tapply(data$recall, data$polysemous, sd)
+boxplot(data$recall ~ data$polysemous)
+t.test(recall ~ polysemous, data = data, paired = F)
+```
+
+Yes. The low p-value indicates that we can reject the null hypothesis that the two groups have the same mean.
+
+## Regression models
+
+```{r}
+ev.pr.lm <- lm(precision ~ frequent + polysemous, data = data)
+summary(ev.pr.lm)
+```
+
+Model diagnostics:
+
+```{r}
+par(mfrow = c(2,2))
+plot(ev.pr.lm)
+par(mfrow = c(1,1))
+```
+
+
+Not a good model.
+
+```{r}
+ev.re.lm <- lm(recall ~ frequent + polysemous, data = data)
+summary(ev.re.lm)
+par(mfrow = c(2,2))
+plot(ev.re.lm)
+par(mfrow = c(1,1))
+```
+
+Not a good model.
+
+
+```{r}
+ev.pr.lm2 <- lm(precision ~ frequent + polysemous + lexicon + window + freq_threshold, data = data)
+summary(ev.pr.lm2)
+par(mfrow = c(2,2))
+plot(ev.pr.lm2)
+par(mfrow = c(1,1))
+```
+
+Not a good model.
+
+Stepwise regression:
+
+```{r}
+ev.pr.m0 <- lm(precision ~ 1, data = data)
+ev.pr.lm.step <- step(ev.pr.m0, scope = ~ frequent + polysemous + lexicon + window + recall + freq_threshold)#, direction = "forward")
+summary(ev.pr.lm.step)
+```
+
+The higher the recall, the higher the precision, as expected. More interestingly, Schmidt's lexicon is associated to lower precision compared to the baseline, AGWN.
+
+Model diagnostics:
+
+```{r}
+par(mfrow = c(2,2))
+plot(ev.pr.lm.step)
+par(mfrow = c(1,1))
+```
+
+Not a great model.
+
+```{r}
+ev.re.m0 <- lm(recall ~ 1, data = data)
+ev.re.lm.step <- step(ev.re.m0, 
+                      scope = ~ frequent + polysemous + lexicon + window + precision)
+                      #direction = "forward"
+summary(ev.re.lm.step)
+png(paste(path, "Evaluation", "plots", "model_diagnostics.png", sep = "/"))
+par(mfrow = c(2,2))
+plot(ev.re.lm.step)
+par(mfrow = c(1,1))
+dev.off()
+hist(resid(ev.re.lm.step))
+plot(ev.re.lm.step, which = 1)
+```
+
+The histogram of standardised residuals shows that the assumption of normality is valid. The fitted values and residuals plot shows that the assumption of homoscedasticity is valid, as there is no pattern in the scatterplot and the width of the scatterplot as predicted values increase is roughly the same.
+
+The higher the precision, the higher the recall, as expected. More interestingly, Schmidt's lexicon is associated to higher recall compared to the baseline, AGWN.
+
+Check https://data.library.virginia.edu/diagnostic-plots/.
+
+
