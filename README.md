@@ -2,11 +2,13 @@
 
 Code for processing the Hartlib Papers, extracting topics, and detecting semantic change. Collaboration between Barbara McGillivray, Simon Hengchen, and Robin Buning.
 
-The script for cleaning the texts was adapted from an original script by Miguel Won.
+Barbara McGillivray developed the code for steps 1 and 3. Simon Hengchen developed the code for steps 2, 4, 5 and 6. Robin Buning has tested the output of all the code and helped refine the code.
+
+
 
 Steps:
 
-1) Linguistic pre-processing of letters: clean_letters_v1.7.py
+1) Linguistic pre-processing of letters: clean_letters_v1.7.py. The script for cleaning the texts was adapted from an original script by Miguel Won.
 2) Language identification: langid-HARTLIB.py
 3) Lemmatization:
   a) English: 
